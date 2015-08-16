@@ -5,9 +5,12 @@ output:
     keep_md: true
 ---
 
+```r
+options("scipen" = 10)
+```
 
 ## Loading and preprocessing the data
-TThis assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
+This assignment makes use of data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
 ```r
 library(dplyr)
@@ -34,8 +37,9 @@ daily_data <- activity %>%
     group_by(new_date) %>%
     summarise(total_steps = sum(steps, na.rm=TRUE))
 
-hist(daily_data$total_steps, breaks=10, 
-     xlab="Count of number of steps taken per day")
+hist(daily_data$total_steps, breaks=10,
+     main="Histogram of total number of steps per day",
+     xlab="Number of steps per day")
 ```
 
 ![plot of chunk mean_calculation](figure/mean_calculation-1.png) 
@@ -70,7 +74,7 @@ max_position <- which.max(activity_pattern$ave_steps_per_interval)
 max_interval_value <- activity_pattern$interval[max_position]
 ```
 The 5-minute interval, on average across all the days in the dataset that contains
-the maximum number of steps is 835
+the maximum number of steps is 835.
 
 ## Imputing missing values
 There are a number of days/intervals where there are missing values (coded as NA). 
@@ -78,54 +82,50 @@ There are a number of days/intervals where there are missing values (coded as NA
 ```r
 number_of_nas <- sum(is.na(activity$steps))
 ```
-The total number of missing values in the dataset is 2304
+The total number of missing values in the dataset is 2304.
 
 Below shows the difference in the data when the missing values are filled using the mean for the 5 minute interval in question. The histogram shows the frequency certain number of steps per day occur.
 
 
 ```r
-#TEST$UNIT[is.na(TEST$UNIT)] <- as.character(TEST$STATUS[is.na(TEST$UNIT)])
-#    Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
+new_activity <- merge(activity, activity_pattern, by.x="interval", 
+                      by.y="interval", all.x=TRUE)
+new_activity$new_steps <- ifelse(is.na(new_activity$steps),
+                                 new_activity$ave_steps_per_interval, 
+                                 new_activity$steps)
 
-#    Create a new dataset that is equal to the original dataset but with the missing data filled in.
-
-
-activity$new_steps <- activity$steps[which(is.na(activity$steps))] <- activity_pattern$ave_steps_per_interval[activity$interval]
+new_daily_data <- new_activity %>%
+    select(new_date, new_steps) %>%
+    group_by(new_date) %>%
+    summarise(total_steps = sum(new_steps, na.rm=TRUE))
+hist(new_daily_data$total_steps, breaks=10,
+     main="Histogram of steps per day, with missing data approximated",
+     xlab="Number of steps per day")
 ```
 
-```
-## Warning in activity$steps[which(is.na(activity$steps))] <-
-## activity_pattern$ave_steps_per_interval[activity$interval]: number of
-## items to replace is not a multiple of replacement length
-```
-
-```
-## Error in `$<-.data.frame`(`*tmp*`, "new_steps", value = c(0.0754716981132075, : replacement has 17507 rows, data has 17568
-```
+![plot of chunk missing_values](figure/missing_values-1.png) 
 
 ```r
-new_mean_steps_per_day <- 0
-new_median_steps_per_day <-0
+new_mean_steps_per_day <- mean(new_daily_data$total_steps, na.rm = TRUE)
+new_median_steps_per_day <- median(new_daily_data$total_steps, na.rm=TRUE)
 ```
 
-The new mean number of steps taken per day is 0.
-The new median number of steps taken per day is 0.
+The new mean number of steps taken per day is 10766.1886792.
+The new median number of steps taken per day is 10766.1886792.
 
-You can see that the median differs from the estimate from the first part of the assignment.  The impact of imputing missing data on the estimates of the total daily number of steps is: 
-
-***************
+You can see that the values differ from the estimate from the first part of the assignment.  The impact of imputing missing data on the estimates of the total daily number of steps is to increase both the mean and the median values. 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 We can see a difference in the activity pattern between weekdays and weekends by looking at the daily activity pattern graph from above, with weekends and weekdays graphed individually.
 
 
 ```r
-weekly_activity <- activity %>%
+weekly_activity <- new_activity %>%
         mutate(weekday = factor(ifelse(weekdays(new_date) %in% c("Saturday",
                 "Sunday"), "weekend", "weekday"))) %>%
-        select(interval, steps, weekday) %>%
+        select(interval, new_steps, weekday) %>%
         group_by(weekday, interval) %>%
-        summarise(ave_steps_per_interval =  mean(steps, na.rm=TRUE))
+        summarise(ave_steps_per_interval =  mean(new_steps, na.rm=TRUE))
 
 library (ggplot2)
 
