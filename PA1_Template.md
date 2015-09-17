@@ -1,5 +1,6 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
+author: cherri_d
 output: 
   html_document:
     keep_md: true
@@ -113,7 +114,7 @@ new_median_steps_per_day <- median(new_daily_data$total_steps, na.rm=TRUE)
 The new mean number of steps taken per day is 10766.1886792.
 The new median number of steps taken per day is 10766.1886792.
 
-You can see that the values differ from the estimate from the first part of the assignment.  The impact of imputing missing data on the estimates of the total daily number of steps is to increase both the mean and the median values. 
+You can see that the values differ from the estimate from the first part of the assignment.  The impact of imputing missing data on the estimates of the total daily number of steps is to increase both the overall mean and the median values. 
 
 ## Are there differences in activity patterns between weekdays and weekends?
 We can see a difference in the activity pattern between weekdays and weekends by looking at the daily activity pattern graph from above, with weekends and weekdays graphed individually.
